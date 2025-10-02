@@ -5,6 +5,7 @@ import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
+import Landing from './pages/landing';
 import TimelineView from './pages/timeline-view';
 import MainDashboard from './pages/main-dashboard';
 import MapView from './pages/map-view';
@@ -18,7 +19,7 @@ const Routes = () => {
       <ErrorBoundary>
         <ScrollToTop />
         <RouterRoutes>
-          <Route path="/" element={<MainDashboard />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/timeline-view" element={<TimelineView />} />
           <Route path="/main-dashboard" element={<MainDashboard />} />
           <Route path="/map-view" element={<MapView />} />
