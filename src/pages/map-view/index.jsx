@@ -11,6 +11,7 @@ import RouteDetails from './components/RouteDetails';
 
 const MapView = () => {
   const navigate = useNavigate();
+  const mapContainerRef = React.useRef(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [mapStyle, setMapStyle] = useState('standard');
@@ -24,6 +25,31 @@ const MapView = () => {
     dateRange: 'today'
   });
 
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      setIsFullscreen(isCurrentlyFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -36,7 +62,7 @@ const MapView = () => {
       }
       if (event?.key === 'F11') {
         event?.preventDefault();
-        setIsFullscreen(!isFullscreen);
+        toggleFullscreen();
       }
     };
 
@@ -111,8 +137,45 @@ const MapView = () => {
     });
   };
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+  const toggleFullscreen = async () => {
+    if (!mapContainerRef.current) return;
+    
+    try {
+      if (!isFullscreen) {
+        // Enter fullscreen on map container
+        const elem = mapContainerRef.current;
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          await elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        } else {
+          // API not supported, use CSS fallback
+          setIsFullscreen(true);
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        } else {
+          // API not supported, use CSS fallback
+          setIsFullscreen(false);
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+      // If Fullscreen API fails, fall back to CSS-based fullscreen
+      setIsFullscreen(!isFullscreen);
+    }
   };
 
   return (
@@ -201,9 +264,12 @@ const MapView = () => {
           </div>
 
           {/* Map Container */}
-          <div className={`relative bg-card border border-border rounded-lg overflow-hidden ${
-            isFullscreen ? 'fixed inset-0 z-40 rounded-none' : 'h-[calc(100vh-300px)]'
-          }`}>
+          <div 
+            ref={mapContainerRef}
+            className={`relative bg-card border border-border rounded-lg overflow-hidden ${
+              isFullscreen ? 'fixed inset-0 z-40 rounded-none' : 'h-[calc(100vh-300px)]'
+            }`}
+          >
             {isFullscreen && (
               <div className="absolute top-4 left-4 z-30">
                 <Button
