@@ -1,0 +1,67 @@
+Hello, please build the complete backend engine for a pre-existing React frontend of a Decision Support System (DSS) for railway rake formation. The system's goal is to optimize logistics by creating ideal rake plans based on various constraints and data inputs.
+
+The architecture should be a modern, scalable web service with a clear separation between the API, background tasks, and the core optimization logic.
+
+1. API Server (FastAPI)
+Create a robust REST API using Python and FastAPI to serve as the central communication hub for the frontend.
+
+Authentication: Implement secure, token-based (JWT) user authentication with login endpoints. All data-access and action endpoints must be protected.
+
+Dashboard Endpoints:
+
+GET /api/v1/dashboard/metrics: To provide real-time counts of active rakes, wagon utilization, and stockyard status.
+
+Planning Endpoints:
+
+GET /api/v1/plans: Retrieve a list of all formation plans.
+
+POST /api/v1/plans: Create a new, empty formation plan.
+
+POST /api/v1/plans/{id}/optimize: Crucially, this endpoint must not block. It should trigger a background optimization job and immediately return a job ID.
+
+Tracking & Analytics Endpoints:
+
+GET /api/v1/rakes/live: To provide live GPS/location data for the interactive map and timeline.
+
+GET /api/v1/analytics/kpis: To serve aggregated data for the performance and cost analysis charts.
+
+2. Database (MySQL & SQLAlchemy)
+Set up a MySQL database managed by SQLAlchemy ORM to persist all application data.
+
+Input Data Schemas: Create tables for orders, inventory, wagons, sidings, and cost_matrix based on the provided design document.
+
+Output Data Schemas: Create tables to store the results of the optimization, including rake_plans (to define a created rake) and plan_assignments (a linking table to show which orders are assigned to which plan).
+
+3. Asynchronous Task Queue (Celery & Redis)
+Implement a background processing system to handle computationally intensive tasks without blocking the API.
+
+Setup: Configure Celery as the task worker and Redis as the message broker and result backend.
+
+Workflow: The /optimize API endpoint must delegate the optimization task to a Celery worker. The frontend will poll for the result using the returned job ID.
+
+4. Core Logic: The Optimizer (Google OR-Tools)
+This is the brain of the system and will run as a Celery task.
+
+Implementation: Develop a module that uses the Google OR-Tools library.
+
+Functionality:
+
+The task will receive a plan_id as input.
+
+It must fetch all required live data from the database (orders, available wagons, siding capacity, etc.).
+
+It will then execute the Mixed-Integer Programming (MIP) model as described in the design document to solve for the optimal rake formation.
+
+The model's constraints must handle all conflict resolution (e.g., prevent double-booking wagons, exceeding siding capacity).
+
+Upon successful completion, the task will save the conflict-free, optimized plan to the rake_plans and plan_assignments tables in the database.
+
+5. Supporting Logic: Machine Learning Models
+Integrate ML models to provide more accurate inputs to the OR optimizer.
+
+Models: Implement and serve pre-trained models (e.g., XGBoost) for predicting delays and estimating fulfillment probability.
+
+Integration: These models should be called by the Celery worker before executing the OR Optimizer to enrich the input data (e.g., adjust the cost matrix with predicted delay penalties).
+
+6. Data Ingestion
+Create an initial mechanism for ingesting data from CSV files into the respective database tables. This should be a script or a dedicated API endpoint."
