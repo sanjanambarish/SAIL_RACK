@@ -23,18 +23,6 @@ args = "Dev Server"
 task = "workflow.run"
 args = "Backend Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Redis"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "FastAPI"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Celery Worker"
-
 [[workflows.workflow]]
 name = "Dev Server"
 author = "agent"
@@ -55,41 +43,6 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev:server"
 waitForPort = 3001
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
-name = "Redis"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "redis-server --port 6000"
-waitForPort = 6000
-
-[[workflows.workflow]]
-name = "FastAPI"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload"
-waitForPort = 8000
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
-name = "Celery Worker"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "celery -A api.celery_app worker --loglevel=info"
 
 [workflows.workflow.metadata]
 outputType = "console"
